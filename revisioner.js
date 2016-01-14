@@ -19,7 +19,8 @@ var Revisioner = (function () {
             'referenceToRegexs': referenceToRegexs,
             'annotator': annotator,
             'replacer': replacer,
-            'debug': false
+            'debug': false,
+            'disableExtensionlessJS': false
         };
 
         this.options = Merge(defaults, options);
@@ -43,6 +44,7 @@ var Revisioner = (function () {
 
         var nonFileNameChar = '[^a-zA-Z0-9\\.\\-\\_\\/]';
         var qoutes = '\'|"';
+        var disableExtensionlessJS = this.options.disableExtensionlessJS
 
         function referenceToRegexs(reference) {
             var escapedRefPathBase = Tool.path_without_ext(reference.path).replace(/([^0-9a-z])/ig, '\\$1');
@@ -52,7 +54,7 @@ var Revisioner = (function () {
             var isJSReference = reference.path.match(/\.js$/);
 
             // Extensionless javascript file references has to to be qouted
-            if (isJSReference) {
+            if (!disableExtensionlessJS && isJSReference) {
                 regExp = '('+ qoutes +')(' + escapedRefPathBase + ')()('+ qoutes + '|$)';
                 regExps.push(new RegExp(regExp, 'g'));
             }
@@ -361,7 +363,7 @@ var Revisioner = (function () {
             var referencePath = reference.path.substr(0, reference.path.length - (reference.file.revFilenameOriginal.length + reference.file.revFilenameExtOriginal.length));
             var pathReferenceReplace = referencePath + reference.file.revFilename;
 
-            
+
             if (this.options.transformPath) {
                 // Transform path using client supplied transformPath callback,
                 pathReferenceReplace = this.options.transformPath.call(this, pathReferenceReplace, reference.path, reference.file, file);
